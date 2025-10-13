@@ -2,11 +2,30 @@
 
 This guide explains how to update the Certy Homebrew formula when a new version is released.
 
-## Automated Update (Recommended)
+## Automatic Updates (Recommended) 🤖
 
-There are two automated workflow options:
+The repository includes an **Auto-Update Formula** workflow that runs daily at 2 AM UTC. This workflow:
 
-### Option A: Pull Request Workflow (Recommended for Teams)
+1. Checks the main Certy repository for new releases
+2. Compares with the current formula version
+3. If a new version is found:
+   - Downloads all platform binaries
+   - Calculates checksums
+   - Updates the formula
+   - Commits and pushes changes automatically
+
+**No manual intervention needed!** The formula will stay up to date automatically.
+
+You can also manually trigger this workflow:
+1. Go to the GitHub Actions tab
+2. Select "Auto-Update Formula"
+3. Click "Run workflow"
+
+## Manual Update Options
+
+If you prefer to manually control updates or need to update immediately:
+
+### Manual Option A: Pull Request Workflow (Recommended for Teams)
 
 Creates a pull request for review before merging.
 
@@ -25,7 +44,7 @@ Creates a pull request for review before merging.
 6. The workflow will create a pull request with the updated formula
 7. Review and merge the pull request
 
-### Option B: Direct Commit Workflow (Simpler)
+### Manual Option B: Direct Commit Workflow (Simpler)
 
 Commits changes directly to the main branch without creating a PR.
 

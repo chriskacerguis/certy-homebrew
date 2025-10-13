@@ -50,8 +50,11 @@ Certy is a CLI tool for certificate management. For more information, visit the 
 
 This repository includes GitHub Actions workflows to automate formula updates:
 
-- **Update Formula (PR)**: Creates a pull request with changes (requires GitHub Actions PR permissions enabled)
-- **Update Formula (Direct)**: Commits changes directly to main branch
+- **Auto-Update Formula** 🤖: Runs daily to automatically check for new releases and update the formula
+- **Update Formula (Direct)**: Manually trigger an update that commits directly to main branch
+- **Update Formula (PR)**: Manually trigger an update that creates a pull request (requires GitHub Actions PR permissions enabled)
+
+The auto-update workflow runs every day at 2 AM UTC and will automatically update the formula when a new version of Certy is released.
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for setup instructions and common issues.
 

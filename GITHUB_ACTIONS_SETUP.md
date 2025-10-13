@@ -4,9 +4,21 @@
 
 The error you encountered was due to GitHub Actions not having permission to create pull requests. This is a GitHub security setting.
 
-## 📋 What Was Added
+## 📋 Available Workflows
 
-### 1. **Two Workflow Options**
+### 1. **Auto-Update Formula** 🤖 ⭐ (Fully Automated!)
+
+**File**: `auto-update-formula.yml`
+
+- ✅ Runs automatically every day at 2 AM UTC
+- ✅ Checks for new Certy releases
+- ✅ Updates formula automatically if new version found
+- ✅ No manual intervention needed
+- ✅ Can also be triggered manually
+
+**Best for**: Set it and forget it! 
+
+### 2. **Manual Workflow Options**
 
 #### Option A: Pull Request Workflow (`update-formula.yml`)
 - ✅ Creates a PR for review
@@ -17,22 +29,25 @@ The error you encountered was due to GitHub Actions not having permission to cre
 - ✅ Commits directly to main
 - ✅ No setup required
 - ✅ Works immediately
+- ✅ Best for manual, on-demand updates
 
-### 2. **Documentation**
+### 3. **Documentation**
 - `TROUBLESHOOTING.md` - How to enable PR permissions
 - Updated `UPDATING.md` - Instructions for both workflows
 - Updated `README.md` - Added maintainer section
 
-## 🚀 How to Use Right Now
+## 🚀 Recommended Setup
 
-You can use the **Direct Commit Workflow** immediately:
+The **Auto-Update Formula** workflow is now running automatically! Your formula will stay up to date without any manual work.
+
+If you want to trigger an update immediately, you can also:
 
 1. Go to: https://github.com/chriskacerguis/certy-homebrew/actions
-2. Click on **"Update Formula (Direct Commit)"**
+2. Click on **"Auto-Update Formula"** or **"Update Formula (Direct Commit)"**
 3. Click **"Run workflow"**
-4. Enter a version number (e.g., `1.2.0`)
+4. For manual workflows, enter a version number (e.g., `1.2.0`)
 5. Click **"Run workflow"**
-6. ✅ Done! Changes commit directly to main
+6. ✅ Done!
 
 ## 🔧 Optional: Enable PR Workflow
 
@@ -47,17 +62,19 @@ If you prefer the PR workflow (recommended for teams):
 
 ## 📊 Workflow Comparison
 
-| Feature | PR Workflow | Direct Commit Workflow |
-|---------|-------------|----------------------|
-| Setup Required | ✅ Yes | ❌ No |
-| Review Changes | ✅ Yes | ❌ No |
-| Immediate Update | ❌ No (needs merge) | ✅ Yes |
-| Best For | Teams | Solo maintainers |
-| **Status** | Needs setup | **Ready to use** |
+| Feature | Auto-Update | Direct Commit | PR Workflow |
+|---------|------------|---------------|-------------|
+| Setup Required | ❌ No | ❌ No | ✅ Yes |
+| Automatic Updates | ✅ Yes (Daily) | ❌ Manual | ❌ Manual |
+| Review Changes | ❌ No | ❌ No | ✅ Yes |
+| Immediate Update | ✅ Yes | ✅ Yes | ❌ No (needs merge) |
+| Best For | Everyone! | Manual control | Teams |
+| **Status** | **🤖 Running!** | **Ready to use** | Needs setup |
 
 ## 🎯 Recommendation
 
-- **Starting out?** Use the **Direct Commit Workflow** - it's ready now!
+- **Default:** The **Auto-Update Workflow** runs automatically - you're all set! 🎉
+- **Need immediate update?** Use the **Direct Commit Workflow**
 - **Working with others?** Enable PR permissions and use the **PR Workflow**
 
 ## 📚 More Information

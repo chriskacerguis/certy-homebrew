@@ -1,0 +1,136 @@
+name: Auto-Update Formula
+
+on:
+  schedule:
+    # Run every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest release from main repo
+        id: latest_release
+        run: |
+          # Fetch the latest release version from the main certy repository
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/chriskacerguis/certy/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          echo "Latest version: ${LATEST_VERSION}"
+          echo "version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Get current formula version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep 'version "' Formula/certy.rb | head -1 | sed 's/.*version "\(.*\)".*/\1/')
+          echo "Current version: ${CURRENT_VERSION}"
+          echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check_update
+        run: |
+          LATEST="${{ steps.latest_release.outputs.version }}"
+          CURRENT="${{ steps.current_version.outputs.version }}"
+          
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "Formula is already up to date (v${CURRENT})"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          else
+            echo "Update needed: v${CURRENT} -> v${LATEST}"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download and calculate checksums
+        if: steps.check_update.outputs.needs_update == 'true'
+        id: checksums
+        run: |
+          VERSION="${{ steps.latest_release.outputs.version }}"
+          
+          echo "Downloading binaries for v${VERSION}..."
+          
+          # Download binaries
+          curl -L -o certy-darwin-amd64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-darwin-amd64"
+          curl -L -o certy-darwin-arm64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-darwin-arm64"
+          curl -L -o certy-linux-amd64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-linux-amd64"
+          curl -L -o certy-linux-arm64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-linux-arm64"
+          
+          # Calculate checksums
+          DARWIN_AMD64_SHA256=$(sha256sum certy-darwin-amd64 | cut -d' ' -f1)
+          DARWIN_ARM64_SHA256=$(sha256sum certy-darwin-arm64 | cut -d' ' -f1)
+          LINUX_AMD64_SHA256=$(sha256sum certy-linux-amd64 | cut -d' ' -f1)
+          LINUX_ARM64_SHA256=$(sha256sum certy-linux-arm64 | cut -d' ' -f1)
+          
+          # Output checksums
+          echo "darwin_amd64_sha256=${DARWIN_AMD64_SHA256}" >> $GITHUB_OUTPUT
+          echo "darwin_arm64_sha256=${DARWIN_ARM64_SHA256}" >> $GITHUB_OUTPUT
+          echo "linux_amd64_sha256=${LINUX_AMD64_SHA256}" >> $GITHUB_OUTPUT
+          echo "linux_arm64_sha256=${LINUX_ARM64_SHA256}" >> $GITHUB_OUTPUT
+          
+          # Print for verification
+          echo "✅ Checksums calculated:"
+          echo "  Darwin AMD64: ${DARWIN_AMD64_SHA256}"
+          echo "  Darwin ARM64: ${DARWIN_ARM64_SHA256}"
+          echo "  Linux AMD64: ${LINUX_AMD64_SHA256}"
+          echo "  Linux ARM64: ${LINUX_ARM64_SHA256}"
+
+      - name: Update Formula
+        if: steps.check_update.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.latest_release.outputs.version }}"
+          
+          echo "Updating formula to v${VERSION}..."
+          
+          # Update the formula file
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" Formula/certy.rb
+          sed -i "s|download/v[0-9.]\+/|download/v${VERSION}/|g" Formula/certy.rb
+          
+          # Update checksums for macOS Intel
+          sed -i "/certy-darwin-amd64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.darwin_amd64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for macOS ARM
+          sed -i "/certy-darwin-arm64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.darwin_arm64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for Linux AMD64
+          sed -i "/certy-linux-amd64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.linux_amd64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for Linux ARM64
+          sed -i "/certy-linux-arm64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.linux_arm64_sha256 }}\"/" Formula/certy.rb
+          
+          echo "✅ Formula updated successfully"
+
+      - name: Commit and Push Changes
+        if: steps.check_update.outputs.needs_update == 'true'
+        run: |
+          VERSION="${{ steps.latest_release.outputs.version }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add Formula/certy.rb
+          git commit -m "Auto-update certy to v${VERSION}
+
+          🤖 Automated update from scheduled workflow
+          
+          Checksums:
+          - Darwin AMD64: ${{ steps.checksums.outputs.darwin_amd64_sha256 }}
+          - Darwin ARM64: ${{ steps.checksums.outputs.darwin_arm64_sha256 }}
+          - Linux AMD64: ${{ steps.checksums.outputs.linux_amd64_sha256 }}
+          - Linux ARM64: ${{ steps.checksums.outputs.linux_arm64_sha256 }}"
+          
+          git push
+          
+          echo "🚀 Successfully updated formula to v${VERSION}"
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.check_update.outputs.needs_update }}" = "true" ]; then
+            echo "✅ Formula updated from v${{ steps.current_version.outputs.version }} to v${{ steps.latest_release.outputs.version }}"
+          else
+            echo "ℹ️  Formula is already up to date (v${{ steps.current_version.outputs.version }})"
+          fi
