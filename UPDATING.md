@@ -4,8 +4,19 @@ This guide explains how to update the Certy Homebrew formula when a new version 
 
 ## Automated Update (Recommended)
 
-The workflow has been configured with the necessary permissions to create pull requests automatically.
+There are two automated workflow options:
 
+### Option A: Pull Request Workflow (Recommended for Teams)
+
+Creates a pull request for review before merging.
+
+**Requirements**: You must enable GitHub Actions to create PRs in your repository settings first:
+1. Go to **Settings** → **Actions** → **General**
+2. Under **Workflow permissions**, select **Read and write permissions**
+3. Check ✅ **Allow GitHub Actions to create and approve pull requests**
+4. Click **Save**
+
+**To use**:
 1. Go to the GitHub Actions tab in this repository
 2. Select the "Update Formula" workflow
 3. Click "Run workflow"
@@ -14,7 +25,19 @@ The workflow has been configured with the necessary permissions to create pull r
 6. The workflow will create a pull request with the updated formula
 7. Review and merge the pull request
 
-**Note**: The workflow requires `contents: write` and `pull-requests: write` permissions, which are already configured in the workflow file.
+### Option B: Direct Commit Workflow (Simpler)
+
+Commits changes directly to the main branch without creating a PR.
+
+**To use**:
+1. Go to the GitHub Actions tab in this repository
+2. Select the "Update Formula (Direct Commit)" workflow
+3. Click "Run workflow"
+4. Enter the new version number (e.g., `1.2.0`)
+5. Click "Run workflow"
+6. Changes will be committed directly to main
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for more details and common issues.
 
 ## Manual Update
 

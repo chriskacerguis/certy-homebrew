@@ -44,6 +44,17 @@ brew untap chriskacerguis/certy
 
 Certy is a CLI tool for certificate management. For more information, visit the [main repository](https://github.com/chriskacerguis/certy).
 
+## For Maintainers
+
+### Automated Updates
+
+This repository includes GitHub Actions workflows to automate formula updates:
+
+- **Update Formula (PR)**: Creates a pull request with changes (requires GitHub Actions PR permissions enabled)
+- **Update Formula (Direct)**: Commits changes directly to main branch
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for setup instructions and common issues.
+
 ## License
 
 See the [main repository](https://github.com/chriskacerguis/certy) for license information.
