@@ -4,6 +4,8 @@ This guide explains how to update the Certy Homebrew formula when a new version 
 
 ## Automated Update (Recommended)
 
+The workflow has been configured with the necessary permissions to create pull requests automatically.
+
 1. Go to the GitHub Actions tab in this repository
 2. Select the "Update Formula" workflow
 3. Click "Run workflow"
@@ -11,6 +13,8 @@ This guide explains how to update the Certy Homebrew formula when a new version 
 5. Click "Run workflow"
 6. The workflow will create a pull request with the updated formula
 7. Review and merge the pull request
+
+**Note**: The workflow requires `contents: write` and `pull-requests: write` permissions, which are already configured in the workflow file.
 
 ## Manual Update
 
