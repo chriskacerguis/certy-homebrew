@@ -1,0 +1,82 @@
+name: Update Formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (e.g., 1.2.0)'
+        required: true
+        type: string
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download and calculate checksums
+        id: checksums
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Download binaries
+          curl -L -o certy-darwin-amd64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-darwin-amd64"
+          curl -L -o certy-darwin-arm64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-darwin-arm64"
+          curl -L -o certy-linux-amd64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-linux-amd64"
+          curl -L -o certy-linux-arm64 "https://github.com/chriskacerguis/certy/releases/download/v${VERSION}/certy-linux-arm64"
+          
+          # Calculate checksums
+          DARWIN_AMD64_SHA256=$(sha256sum certy-darwin-amd64 | cut -d' ' -f1)
+          DARWIN_ARM64_SHA256=$(sha256sum certy-darwin-arm64 | cut -d' ' -f1)
+          LINUX_AMD64_SHA256=$(sha256sum certy-linux-amd64 | cut -d' ' -f1)
+          LINUX_ARM64_SHA256=$(sha256sum certy-linux-arm64 | cut -d' ' -f1)
+          
+          # Output checksums
+          echo "darwin_amd64_sha256=${DARWIN_AMD64_SHA256}" >> $GITHUB_OUTPUT
+          echo "darwin_arm64_sha256=${DARWIN_ARM64_SHA256}" >> $GITHUB_OUTPUT
+          echo "linux_amd64_sha256=${LINUX_AMD64_SHA256}" >> $GITHUB_OUTPUT
+          echo "linux_arm64_sha256=${LINUX_ARM64_SHA256}" >> $GITHUB_OUTPUT
+          
+          # Print for verification
+          echo "Checksums calculated:"
+          echo "Darwin AMD64: ${DARWIN_AMD64_SHA256}"
+          echo "Darwin ARM64: ${DARWIN_ARM64_SHA256}"
+          echo "Linux AMD64: ${LINUX_AMD64_SHA256}"
+          echo "Linux ARM64: ${LINUX_ARM64_SHA256}"
+
+      - name: Update Formula
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Update the formula file
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" Formula/certy.rb
+          sed -i "s|download/v[0-9.]\+/|download/v${VERSION}/|g" Formula/certy.rb
+          
+          # Update checksums for macOS Intel
+          sed -i "/certy-darwin-amd64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.darwin_amd64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for macOS ARM
+          sed -i "/certy-darwin-arm64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.darwin_arm64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for Linux AMD64
+          sed -i "/certy-linux-amd64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.linux_amd64_sha256 }}\"/" Formula/certy.rb
+          
+          # Update checksums for Linux ARM64
+          sed -i "/certy-linux-arm64/,/sha256/ s/sha256 \".*\"/sha256 \"${{ steps.checksums.outputs.linux_arm64_sha256 }}\"/" Formula/certy.rb
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Update certy to v${{ github.event.inputs.version }}"
+          title: "Update certy to v${{ github.event.inputs.version }}"
+          body: |
+            Updates certy formula to version ${{ github.event.inputs.version }}
+            
+            Checksums:
+            - Darwin AMD64: ${{ steps.checksums.outputs.darwin_amd64_sha256 }}
+            - Darwin ARM64: ${{ steps.checksums.outputs.darwin_arm64_sha256 }}
+            - Linux AMD64: ${{ steps.checksums.outputs.linux_amd64_sha256 }}
+            - Linux ARM64: ${{ steps.checksums.outputs.linux_arm64_sha256 }}
+          branch: update-v${{ github.event.inputs.version }}
+          delete-branch: true

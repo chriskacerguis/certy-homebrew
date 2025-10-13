@@ -1,0 +1,12 @@
+# Downloaded binaries (used for checksum calculation)
+certy-*
+
+# macOS
+.DS_Store
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
